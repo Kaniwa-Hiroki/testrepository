@@ -1,64 +1,66 @@
 #include <fstream>
-#include <string>
-#include <vector>
-#include <sstream>
+#include <iostream>
+#include <ostream>
 
-class FileReader {
+class Logger {
 public:
-    FileReader(const std::string& filename, char delimiter) : inputFile(filename), delimiter(delimiter) {}
-
-    bool openFile() {
-        inputFile.open(filename);
-        return inputFile.is_open();
+    static Logger& getInstance() {
+        static Logger instance;
+        return instance;
     }
 
-    void closeFile() {
-        if (inputFile.is_open()) {
-            inputFile.close();
-        }
+    void openLogFile(const std::string& filename) {
+        logFile.open(filename, std::ios::app);
     }
 
-    std::string getNextRow() {
-        std::string line;
-        if (std::getline(inputFile, line)) {
-            return line;
-        }
-        return "";
+    void closeLogFile() {
+        logFile.close();
     }
 
-    std::vector<std::string> splitRow(const std::string& row) {
-        std::vector<std::string> result;
-        std::stringstream ss(row);
-        std::string item;
-        while (std::getline(ss, item, delimiter)) {
-            result.push_back(item);
-        }
-        return result;
+    std::ostream& getLogFile() {
+        return logFile;
+    }
+
+    template <typename T>
+    void log(const T& message) {
+        logFile << message << std::endl;
     }
 
 private:
-    std::string filename;
-    std::ifstream inputFile;
-    char delimiter;
+    Logger() {}
+    ~Logger() {}
+
+    std::ofstream logFile;
+};
+
+class CommunicationSender {
+public:
+    void sendData() {
+        Logger::getInstance().log("Data sent.");
+
+        // 送信処理
+    }
+};
+
+class CommunicationReceiver {
+public:
+    void receiveData() {
+        Logger::getInstance().log("Data received.");
+
+        // 受信処理
+    }
 };
 
 int main() {
-    FileReader reader("data.csv", ',');  // データが格納されたCSVファイル名を指定して FileReader オブジェクトを作成
+    Logger::getInstance().openLogFile("communication.log");
 
-    if (reader.openFile()) {
-        std::string row;
-        while ((row = reader.getNextRow()) != "") {
-            // 取得した行データを利用する処理
-            std::vector<std::string> columns = reader.splitRow(row);
-            for (const auto& item : columns) {
-                // データを利用する処理
-            }
-        }
+    CommunicationSender sender;
+    CommunicationReceiver receiver;
 
-        reader.closeFile();
-    } else {
-        // ファイルオープン失敗の処理
-    }
+    sender.sendData();
+    receiver.receiveData();
+
+    Logger::getInstance().closeLogFile();
 
     return 0;
 }
