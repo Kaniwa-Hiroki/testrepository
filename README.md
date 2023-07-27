@@ -1,66 +1,47 @@
-#include <fstream>
-#include <iostream>
-#include <ostream>
-
-class Logger {
-public:
-    static Logger& getInstance() {
-        static Logger instance;
-        return instance;
-    }
-
-    void openLogFile(const std::string& filename) {
-        logFile.open(filename, std::ios::app);
-    }
-
-    void closeLogFile() {
-        logFile.close();
-    }
-
-    std::ostream& getLogFile() {
-        return logFile;
-    }
-
-    template <typename T>
-    void log(const T& message) {
-        logFile << message << std::endl;
-    }
-
+class DateCalculator {
 private:
-    Logger() {}
-    ~Logger() {}
+    Date& date;
 
-    std::ofstream logFile;
-};
+    void calculateDate();
+    void calculateWeekday();
 
-class CommunicationSender {
 public:
-    void sendData() {
-        Logger::getInstance().log("Data sent.");
+    DateCalculator(Date& d);
 
-        // 送信処理
-    }
+    void calculate();
 };
 
-class CommunicationReceiver {
-public:
-    void receiveData() {
-        Logger::getInstance().log("Data received.");
+以下に具体的なテストケースをいくつか挙げます。各テストケースはDateCalculatorクラスのメソッドに対して、入力値と期待される結果値の組み合わせを示しています。
 
-        // 受信処理
-    }
-};
+    正常な日付の計算と曜日の計算のテスト:
+        入力値：2023年7月27日、経過日数：10
+        期待される結果：2023年8月6日（曜日：土曜日）
 
-int main() {
-    Logger::getInstance().openLogFile("communication.log");
+    経過日数が負数になる場合のテスト:
+        入力値：2023年7月15日、経過日数：-5
+        期待される結果：2023年7月10日（曜日：月曜日）
 
-    CommunicationSender sender;
-    CommunicationReceiver receiver;
+    閏年のテスト:
+        入力値：2000年2月29日、経過日数：1
+        期待される結果：2000年3月1日（曜日：水曜日）
 
-    sender.sendData();
-    receiver.receiveData();
+    曜日のテスト:
+        入力値：2023年7月27日
+        期待される結果：曜日：水曜日
 
-    Logger::getInstance().closeLogFile();
+    境界値テスト:
+        入力値：2023年12月31日、経過日数：1
+        期待される結果：2024年1月1日（曜日：月曜日）
 
-    return 0;
-}
+これらのテストケースは、各メソッドが期待通りの振る舞いを示すかどうかを確認するための例です。テストケースはこれらに限らず、さまざまなケースを考慮して設計することが重要です。特に境界値や特殊なケースを含め、可能な限り広範囲にわたるテストを行うことで、クラスの動作をより堅牢に保証することができます。
+
+
+カバレッジと値のテストは異なる概念です。
+
+    カバレッジ（Coverage）:
+    カバレッジは、テストがコードのどれだけの部分を実行したかを示す指標です。一般的なカバレッジの種類として、行カバレッジ（Line Coverage）、条件カバレッジ（Branch Coverage）、関数カバレッジなどがあります。カバレッジを高めることで、テストがコードの網羅性を向上させることができますが、それだけでコードの正しさを保証するわけではありません。カバレッジはテストの品質を評価する指標の一つであり、テストスイートがどれだけコードを網羅しているかを示します。
+
+    値のテスト（Value Testing）:
+    値のテストは、テストケースを設計して実際の値を用いてコードの振る舞いを検証することです。テストケースを通じて、コードが期待通りの値や結果を返すかを確認します。値のテストにより、コードが正確な計算や処理を行っているかを確認することができます。
+
+カバレッジはテストがどれだけコードを網羅しているかを測るため、どの行や条件がテストされていないかを知ることができます。値のテストは、カバレッジを高めるだけでなく、コードが正しい結果を返すかどうかを具体的に確認するための手段です。両者は補完的な役割を果たし、良質なテストを実現するためには、両方を適切に組み合わせて行うことが重要です。
