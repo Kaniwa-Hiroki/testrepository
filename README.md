@@ -1,43 +1,78 @@
-class DateCalculator {
-public:
-    DateCalculator(Date& date) : date_(date) {}
+#ifndef TEST_HPP
+#define TEST_HPP
 
-    void calculate();
-
-private:
-    Date& date_; // 外部のDateオブジェクトを参照で持つ
-
-    long long convertToUnixTime() const;
-    long long calculateElapsedSeconds() const;
-    void setYearMonthDayWeekdayFromUnixTime(long long unixTime);
+struct InitialTargetDates {
+    int initialYear;
+    int initialMonth;
+    int initialDay;
+    bool isOneDay;
+    bool isAfterDay;
+    int durationDays;
+    int targetYear;
+    int targetMonth;
+    int targetDay;
+    int targetWeekDay;
 };
 
+#ifdef DEBUG
 
-カバレッジと値のテストは異なる概念です。
+#include <fstream>
+#include <stdexcept>
 
-    カバレッジ（Coverage）:
-    カバレッジは、テストがコードのどれだけの部分を実行したかを示す指標です。一般的なカバレッジの種類として、行カバレッジ（Line Coverage）、条件カバレッジ（Branch Coverage）、関数カバレッジなどがあります。カバレッジを高めることで、テストがコードの網羅性を向上させることができますが、それだけでコードの正しさを保証するわけではありません。カバレッジはテストの品質を評価する指標の一つであり、テストスイートがどれだけコードを網羅しているかを示します。
+#define LOG_FILE_NAME "logfile.csv"
 
-    値のテスト（Value Testing）:
-    値のテストは、テストケースを設計して実際の値を用いてコードの振る舞いを検証することです。テストケースを通じて、コードが期待通りの値や結果を返すかを確認します。値のテストにより、コードが正確な計算や処理を行っているかを確認することができます。
+class Logger {
+public:
+    static void log(const std::string& message) {
+        instance().file << message << std::endl;
+    }
 
-カバレッジはテストがどれだけコードを網羅しているかを測るため、どの行や条件がテストされていないかを知ることができます。値のテストは、カバレッジを高めるだけでなく、コードが正しい結果を返すかどうかを具体的に確認するための手段です。両者は補完的な役割を果たし、良質なテストを実現するためには、両方を適切に組み合わせて行うことが重要です。
+    static void logInitialTargetDates(const InitialTargetDates& initialTargetDates) {
+        instance().file
+            << initialTargetDates.initialYear << ','
+            << initialTargetDates.initialMonth << ','
+            << initialTargetDates.initialDay << ','
+            << initialTargetDates.isOneDay << ','
+            << initialTargetDates.isAfterDay << ','
+            << initialTargetDates.durationDays << ','
+            << initialTargetDates.targetYear << ','
+            << initialTargetDates.targetMonth << ','
+            << initialTargetDates.targetDay << ','
+            << initialTargetDates.targetWeekDay << std::endl;
+    }
 
+private:
+    Logger(const std::string& fileName)
+    {
+        file.open(fileName, std::ios::out);
+        if (!file.is_open()) {
+            throw std::runtime_error("Failed to open log file.");
+        }
+    }
+    
+    ~Logger()
+    {
+        file.close();
+    }
 
-単体テストのテストケース
-1. 正常な開始日と経過日を与えて計算が正しく行われることを確認するテスト
-2. 閏年を含む正常な日付に対して計算が正しく行われることを確認するテスト
-3. 特殊な日付に対して計算が正しく行われることを確認するテスト（年越し）
-4. 過去の日付を与えた場合に結果が過去の日付になることを確認するテスト
-5. 未来の日付を与えた場合に結果が未来の日付になることを確認するテスト
-6. 上限値と下限値を与えて計算が正しく行われることを確認するテスト（開始日上下、経過日上下）
-   （結果日が下限値となるテストは不要です。結果日が下限値となるケースは、開始日が下限値でありかつ経過日が上限値を超えない限り、ありえません。そのようなケースは既に他のテストケースでカバーされているため、結果日が下限値となるテストは重複してしまいます。）
+    Logger(const Logger&) = delete;
+    Logger& operator=(const Logger&) = delete;
 
+    static Logger& instance()
+    {
+        static Logger logger(LOG_FILE_NAME);
+        return logger;
+    }
 
-calculatorが1つのメソッドであり、他の複数のメソッドを呼び出す場合、それは単体テストの範囲に含まれます。
+    std::ofstream file;
+};
 
-単体テストは、1つのユニット（関数やメソッド）を分離してテストするものです。calculatorが1つのメソッドである場合、そのメソッド内で呼び出される他のメソッドは、同じクラスに属しているものであり、calculatorの一部として考えられます。
+#define logITD(itd) Logger::logInitialTargetDates(itd)
 
-したがって、calculatorのテストは単体テストとして扱われます。テスト対象のメソッドが1つであっても、そのメソッドが内部で他のメソッドを呼び出す場合、テストは対象のメソッドの振る舞いを確認する単体テストとして行われます。
+#else // DEFINE
 
-一方、複数のクラスやモジュールが連携して動作するかを確認する場合は、それが結合テストになります。結合テストでは、複数のモジュールが連携してシステム全体の機能を果たすことを確認します。ただし、calculatorが1つのメソッドであり、他のメソッドを呼び出すだけの場合は、それが単体テストの範囲に含まれます。
+#define logITD(itd)
+
+#endif // DEFINE
+
+#endif // TEST_HPP
