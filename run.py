@@ -92,34 +92,30 @@ count = 1000
 
 #for i in tqdm(range(count)):
 for i in range(count):
-    try:
-        start = time.time()
-        audio_data = audio_manager.get_audio_capture()
-        array_data = butter_bandpass_filter(audio_data, lowcut, highcut, RATE)
-        array_data = medfilt(audio_data, kernel_size=3)
-        spectrum = np.abs(np.fft.fft(array_data * window))[:CHUNK] / CHUNK
-        normalized_spectrum = scaler.fit_transform(spectrum.reshape(-1, 1))
-        
-        end = time.time()
-        time_diff = end - start
+    start = time.time()
+    audio_data = audio_manager.get_audio_capture()
+    array_data = butter_bandpass_filter(audio_data, lowcut, highcut, RATE)
+    array_data = medfilt(audio_data, kernel_size=3)
+    spectrum = np.abs(np.fft.fft(array_data * window))[:CHUNK] / CHUNK
+    normalized_spectrum = scaler.fit_transform(spectrum.reshape(-1, 1))
+    
+    end = time.time()
+    time_diff = end - start
 
-        list_predict = []
-        for model in list_models:
-            list_predict.append(model[1].predict([normalized_spectrum.reshape(-1)]))
+    list_predict = []
+    for model in list_models:
+        list_predict.append(model[1].predict([normalized_spectrum.reshape(-1)]))
 
-        sys.stdout.write("\r"+str(sum(list_predict)/len(list_predict))+str(list_predict)+" time="+str(time_diff))
-        sys.stdout.flush()
-        if sum(list_predict) == 0:
-            print("ドローン離陸!")
+    sys.stdout.write("\r"+str(sum(list_predict)/len(list_predict))+str(list_predict)+" time="+str(time_diff))
+    sys.stdout.flush()
+    if sum(list_predict) == 0:
+        print("ドローン離陸!")
 
-        if sum(list_predict) == 0:
-            num_is_drone += 1
+    if sum(list_predict) == 0:
+        num_is_drone += 1
 
-        list_time.append(time_diff)
-
-    except KeyboardInterrupt: ## ctrl + c
-        break
+    list_time.append(time_diff)
 
 print("")
-print(f"ループあたりの実行時間　平均: {sum(list_time) / len(list_time)}s, 最大: {max(list_time)}s")
+print(f"ループあたりの実行時間　平均: {sum(list_time) / len(list_time)}s, 最大: {max(list_time)}s, 1秒あたりの平均試行回数: {1/ (sum(list_time) / len(list_time))}, 1秒あたりの最低試行回数: {1/ max(list_time)}")
 print(f"分類結果　試行回数: {count}回, ドローン有回数: {num_is_drone}回, ドローン有確率: {(num_is_drone / count) * 100}%")
