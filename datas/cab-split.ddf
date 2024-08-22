@@ -1,0 +1,13 @@
+; セミコロンはコメント
+.Set CabinetNameTemplate=split-part*.cab
+; 空指定でカレントディレクトリへ生成
+.Set DiskDirectoryTemplate=
+; 分割サイズ　byte単位
+.Set MaxDiskSize=20971520
+.Set Cabinet=on
+; 単に分割したい場合は圧縮をoffにする
+.Set Compress=off
+.Set InfFileName=NUL
+.Set RptFileName=NUL
+; 分割対象のファイル
+"windows10.0-kb5041580-x64_b3de56748ec2ba6f57af49e58690585ed0c385ec.msu"
